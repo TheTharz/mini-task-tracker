@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         return UserResponse.builder()
-                .id(savedUser.getId())
+                .id(savedUser.getId().toString())
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
                 .createdAt(savedUser.getCreatedAt())
@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         UserResponse userResponse = UserResponse.builder()
-                .id(user.getId())
+                .id(user.getId().toString())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())

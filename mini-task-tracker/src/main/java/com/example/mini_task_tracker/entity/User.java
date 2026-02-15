@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name="users")
@@ -16,7 +17,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false,nullable = false)
-    private String id;
+    private UUID id;
 
     @Column(nullable = false)
     private String username;
@@ -27,5 +28,6 @@ public class User {
     @Column(name = "hashed_password", nullable = false)
     private String hashedPassword;
 
+    @Column(nullable = false)
     private Instant createdAt;
 }
