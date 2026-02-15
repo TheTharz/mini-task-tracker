@@ -1,5 +1,9 @@
 package com.example.mini_task_tracker.controller;
 
+import com.example.mini_task_tracker.dto.LoginRequest;
+import com.example.mini_task_tracker.dto.LoginResponse;
+import com.example.mini_task_tracker.dto.RefreshTokenRequest;
+import com.example.mini_task_tracker.dto.RefreshTokenResponse;
 import com.example.mini_task_tracker.dto.RegisterRequest;
 import com.example.mini_task_tracker.dto.UserResponse;
 import com.example.mini_task_tracker.service.UserService;
@@ -23,5 +27,19 @@ public class UserController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         UserResponse response = userService.register(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "Login user", description = "Authenticate user and return JWT token")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = userService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh access token", description = "Get a new access token using refresh token")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        RefreshTokenResponse response = userService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(response);
     }
 }
