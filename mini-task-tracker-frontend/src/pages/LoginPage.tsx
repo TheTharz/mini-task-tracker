@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
@@ -38,7 +39,7 @@ export const LoginPage: React.FC = () => {
                 password: formData.password
             });
             // Redirect to dashboard or home
-            alert('Login successful!');
+            toast.success('Login successful!');
             navigate('/');
         } catch (err: any) {
             console.error(err);
@@ -47,6 +48,7 @@ export const LoginPage: React.FC = () => {
                 ...prev,
                 submit: errorMessage
             }));
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

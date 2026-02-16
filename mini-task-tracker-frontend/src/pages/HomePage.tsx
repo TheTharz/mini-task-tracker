@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { taskService } from '../services/task.service';
 import type { Task } from '../types/task.types';
@@ -6,9 +7,11 @@ import { TaskCard } from '../components/ui/TaskCard';
 import { Button } from '../components/ui/Button';
 import { CreateTaskModal } from '../components/tasks/CreateTaskModal';
 import { Pagination } from '../components/ui/Pagination'; // Import the new component
+import { authService } from '../services/auth.service';
 
 export const HomePage: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [user, setUser] = useState<{ username: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -38,6 +41,27 @@ export const HomePage: React.FC = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
+    const handleCreateNew = () => {
+        setTaskToEdit(null);
+        setIsCreateModalOpen(true);
+    };
+
+    const handleLogout = async () => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const { refreshToken } = JSON.parse(storedUser);
+                if (refreshToken) {
+                    await authService.logout(refreshToken);
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        }
+        localStorage.removeItem('user');
+        navigate('/login');
+    };
+
     const fetchTasks = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -60,25 +84,27 @@ export const HomePage: React.FC = () => {
             setError(null);
         } catch (err) {
             console.error('Failed to fetch tasks:', err);
-            setError('Failed to load tasks. Please try again.');
+            // setError('Failed to load tasks. Please try again.'); // Optional: keep or remove UI error
+            toast.error('Failed to load tasks');
         } finally {
             setIsLoading(false);
         }
     }, [page, pageSize, sortBy, sortDirection, search, statusFilter, priorityFilter, dueDateFrom, dueDateTo]);
 
     useEffect(() => {
-        const user = localStorage.getItem('user');
-        if (!user) {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
             navigate('/login');
             return;
         }
+
+        // Fetch fresh user details
+        authService.getCurrentUser()
+            .then((u: { username: string }) => setUser(u))
+            .catch((err: any) => console.error('Failed to fetch user:', err));
+
         fetchTasks();
     }, [navigate, fetchTasks]);
-
-    const handleCreateNew = () => {
-        setTaskToEdit(null); // Ensure no task is selected for editing
-        setIsCreateModalOpen(true);
-    };
 
     const handleEdit = (task: Task) => {
         setTaskToEdit(task);
@@ -94,10 +120,11 @@ export const HomePage: React.FC = () => {
             try {
                 // Optimistically update list or just reload
                 await taskService.deleteTask(task.id);
+                toast.success('Task deleted successfully');
                 fetchTasks();
             } catch (err) {
                 console.error('Failed to delete task:', err);
-                alert('Failed to delete task. Please try again.');
+                toast.error('Failed to delete task');
             }
         }
     };
@@ -142,12 +169,27 @@ export const HomePage: React.FC = () => {
             <header className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                     <h1 className="text-xl font-bold text-uber-black">My Tasks</h1>
-                    <Button
-                        onClick={handleCreateNew}
-                        className="!py-2 !px-4 text-sm"
-                    >
-                        Create New
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Button
+                            onClick={handleCreateNew}
+                            className="!py-2 !px-4 text-sm"
+                        >
+                            Create New
+                        </Button>
+                        {user && (
+                            <span className="hidden sm:inline-block text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+                                Hi, <span className="text-uber-black">{user.username}</span>
+                            </span>
+                        )}
+                        <Button
+                            variant="secondary"
+                            onClick={handleLogout}
+                            className="!p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 !border-transparent"
+                            title="Log Out"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </Button>
+                    </div>
                 </div>
             </header>
 

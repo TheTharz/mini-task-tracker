@@ -31,4 +31,22 @@ export const authService = {
             throw new Error(axiosError.message);
         }
     },
+    getCurrentUser: async (): Promise<any> => {
+        try {
+            const response = await apiClient.get('/users/me');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+            throw error;
+        }
+    },
+
+    logout: async (refreshToken: string): Promise<void> => {
+        try {
+            await apiClient.post('/users/logout', { refreshToken });
+        } catch (error) {
+            console.error('Error logging out:', error);
+            // We verify logout even if server fails to ensure client side cleanup
+        }
+    }
 };

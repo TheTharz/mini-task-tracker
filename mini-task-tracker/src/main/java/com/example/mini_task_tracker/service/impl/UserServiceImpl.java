@@ -97,4 +97,29 @@ public class UserServiceImpl implements UserService {
                 .type("Bearer")
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void logout(String refreshToken) {
+        try {
+            RefreshToken token = refreshTokenService.findByToken(refreshToken);
+            refreshTokenService.deleteRefreshToken(token);
+        } catch (CustomException e) {
+            // Token not found - already logged out or invalid token
+            // We don't throw error here, logout is idempotent
+        }
+    }
+
+    @Override
+    public UserResponse getCurrentUser(String userId) {
+        User user = userRepository.findById(java.util.UUID.fromString(userId))
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+
+        return UserResponse.builder()
+                .id(user.getId().toString())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
 }

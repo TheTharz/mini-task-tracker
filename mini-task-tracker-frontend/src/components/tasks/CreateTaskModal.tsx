@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -56,15 +57,18 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClos
         try {
             if (taskToEdit) {
                 await taskService.updateTask(taskToEdit.id, formData);
+                toast.success('Task updated successfully');
             } else {
                 await taskService.createTask(formData);
+                toast.success('Task created successfully');
             }
 
             onTaskSaved();
             onClose();
         } catch (err) {
             console.error('Failed to save task:', err);
-            setError('Failed to save task. Please try again.');
+            // setError('Failed to save task. Please try again.');
+            toast.error('Failed to save task');
         } finally {
             setIsLoading(false);
         }
