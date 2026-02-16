@@ -39,7 +39,6 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
 
-      # CORS Configuration - allow frontend from any origin in development
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost}
 
       # Server Configuration
