@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - feature/misc
     paths:
       - "mini-task-tracker-frontend/**"
       - ".github/workflows/frontend.yml"
