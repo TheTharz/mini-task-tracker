@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId().toString());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         UserResponse userResponse = UserResponse.builder()
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
         refreshTokenService.verifyExpiration(token);
 
         User user = token.getUser();
-        String newAccessToken = jwtUtil.generateToken(user.getEmail());
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getId().toString());
 
         return RefreshTokenResponse.builder()
                 .accessToken(newAccessToken)
