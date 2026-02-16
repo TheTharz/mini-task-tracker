@@ -17,14 +17,14 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     
     @Query(value = "SELECT * FROM tasks t WHERE t.user_id = CAST(:userId AS uuid) " +
            "AND (CAST(:status AS text) IS NULL OR t.status = CAST(:status AS task_status)) " +
-           "AND (CAST(:priority AS text) IS NULL OR t.priority = CAST(:priority AS text)) " +
+           "AND (CAST(:priority AS text) IS NULL OR LOWER(t.priority) = LOWER(CAST(:priority AS text))) " +
            "AND (CAST(:search AS text) IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')) " +
            "     OR LOWER(t.description) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))) " +
            "AND (CAST(:dueDateFrom AS timestamp) IS NULL OR t.due_date >= CAST(:dueDateFrom AS timestamp)) " +
            "AND (CAST(:dueDateTo AS timestamp) IS NULL OR t.due_date <= CAST(:dueDateTo AS timestamp))",
            countQuery = "SELECT COUNT(*) FROM tasks t WHERE t.user_id = CAST(:userId AS uuid) " +
            "AND (CAST(:status AS text) IS NULL OR t.status = CAST(:status AS task_status)) " +
-           "AND (CAST(:priority AS text) IS NULL OR t.priority = CAST(:priority AS text)) " +
+           "AND (CAST(:priority AS text) IS NULL OR LOWER(t.priority) = LOWER(CAST(:priority AS text))) " +
            "AND (CAST(:search AS text) IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')) " +
            "     OR LOWER(t.description) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))) " +
            "AND (CAST(:dueDateFrom AS timestamp) IS NULL OR t.due_date >= CAST(:dueDateFrom AS timestamp)) " +
