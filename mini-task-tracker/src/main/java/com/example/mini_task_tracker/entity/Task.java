@@ -1,5 +1,6 @@
 package com.example.mini_task_tracker.entity;
 
+import com.example.mini_task_tracker.converter.TaskStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -27,8 +28,8 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "task_status default 'TODO'")
+    @Convert(converter = TaskStatusConverter.class)
+    @Column(nullable = false, columnDefinition = "task_status")
     private TaskStatus status;
 
     @Column(length = 50)

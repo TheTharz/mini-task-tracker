@@ -10,11 +10,14 @@ import com.example.mini_task_tracker.repository.TaskRepository;
 import com.example.mini_task_tracker.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -45,10 +48,49 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TaskResponse> getTasksByUserId(String userId, Pageable pageable) {
+    public Page<TaskResponse> getTasksByUserId(
+            String userId,
+            TaskStatus status,
+            String priority,
+            String search,
+            Instant dueDateFrom,
+            Instant dueDateTo,
+            Pageable pageable) {
         UUID userUuid = UUID.fromString(userId);
+        
+        // If any filters are applied, use the filter query with mapped column names
+        if (status != null || priority != null || search != null || dueDateFrom != null || dueDateTo != null) {
+            String statusStr = status != null ? status.name() : null;
+            // Convert entity field names to database column names for native query
+            Pageable mappedPageable = mapToDbColumnNames(pageable);
+            Page<Task> tasks = taskRepository.findByUserIdWithFilters(
+                userUuid, statusStr, priority, search, dueDateFrom, dueDateTo, mappedPageable
+            );
+            return tasks.map(this::mapToTaskResponse);
+        }
+        
+        // Otherwise use the simple query
         Page<Task> tasks = taskRepository.findByUserId(userUuid, pageable);
         return tasks.map(this::mapToTaskResponse);
+    }
+
+    private Pageable mapToDbColumnNames(Pageable pageable) {
+        Sort sort = pageable.getSort();
+        Sort mappedSort = Sort.unsorted();
+        
+        for (Sort.Order order : sort) {
+            String property = order.getProperty();
+            String dbColumn = switch (property) {
+                case "createdAt" -> "created_at";
+                case "updatedAt" -> "updated_at";
+                case "dueDate" -> "due_date";
+                case "userId" -> "user_id";
+                default -> property; // title, description, status, priority stay the same
+            };
+            mappedSort = mappedSort.and(Sort.by(order.getDirection(), dbColumn));
+        }
+        
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), mappedSort);
     }
 
     @Override

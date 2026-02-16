@@ -3,6 +3,7 @@ package com.example.mini_task_tracker.controller;
 import com.example.mini_task_tracker.dto.CreateTaskRequest;
 import com.example.mini_task_tracker.dto.TaskResponse;
 import com.example.mini_task_tracker.dto.UpdateTaskRequest;
+import com.example.mini_task_tracker.entity.TaskStatus;
 import com.example.mini_task_tracker.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,12 +45,17 @@ public class TaskController {
     }
 
     @GetMapping
-    @Operation(summary = "Get user tasks", description = "Get paginated list of tasks for the authenticated user")
+    @Operation(summary = "Get user tasks", description = "Get paginated list of tasks for the authenticated user with optional filters")
     public ResponseEntity<Page<TaskResponse>> getTasks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Instant dueDateFrom,
+            @RequestParam(required = false) Instant dueDateTo,
             Authentication authentication) {
         @SuppressWarnings("unchecked")
         Map<String, String> principal = (Map<String, String>) authentication.getPrincipal();
@@ -57,7 +64,9 @@ public class TaskController {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         
-        Page<TaskResponse> tasks = taskService.getTasksByUserId(userId, pageable);
+        Page<TaskResponse> tasks = taskService.getTasksByUserId(
+            userId, status, priority, search, dueDateFrom, dueDateTo, pageable
+        );
         return ResponseEntity.ok(tasks);
     }
 
