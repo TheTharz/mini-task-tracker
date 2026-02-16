@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 
 export const RegisterPage: React.FC = () => {
@@ -12,6 +13,7 @@ export const RegisterPage: React.FC = () => {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -44,8 +46,14 @@ export const RegisterPage: React.FC = () => {
                 email: formData.email,
                 password: formData.password
             });
-            alert('Registration successful! Please sign in.');
-            // navigate('/login');
+            toast.success('Registration successful! Logging you in...');
+
+            // Auto-login
+            await authService.login({
+                email: formData.email,
+                password: formData.password
+            });
+            navigate('/');
         } catch (err: any) {
             console.error(err);
             const errorMessage = err.message || (typeof err === 'string' ? err : 'Registration failed');
@@ -53,6 +61,7 @@ export const RegisterPage: React.FC = () => {
                 ...prev,
                 submit: errorMessage
             }));
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

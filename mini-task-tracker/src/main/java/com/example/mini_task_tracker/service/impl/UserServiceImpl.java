@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId().toString());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         UserResponse userResponse = UserResponse.builder()
@@ -89,12 +89,37 @@ public class UserServiceImpl implements UserService {
         refreshTokenService.verifyExpiration(token);
 
         User user = token.getUser();
-        String newAccessToken = jwtUtil.generateToken(user.getEmail());
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getId().toString());
 
         return RefreshTokenResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(token.getToken())
                 .type("Bearer")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void logout(String refreshToken) {
+        try {
+            RefreshToken token = refreshTokenService.findByToken(refreshToken);
+            refreshTokenService.deleteRefreshToken(token);
+        } catch (CustomException e) {
+            // Token not found - already logged out or invalid token
+            // We don't throw error here, logout is idempotent
+        }
+    }
+
+    @Override
+    public UserResponse getCurrentUser(String userId) {
+        User user = userRepository.findById(java.util.UUID.fromString(userId))
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+
+        return UserResponse.builder()
+                .id(user.getId().toString())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

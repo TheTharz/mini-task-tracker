@@ -1,12 +1,11 @@
-import axios, { AxiosError } from 'axios';
+import { apiClient } from './api.client';
+import { AxiosError } from 'axios';
 import type { RegisterRequest, RegisterResponse, ApiError, LoginRequest, LoginResponse } from '../types/auth.types';
-
-const API_URL = (import.meta.env.VITE_API_BASE_URL || '');
 
 export const authService = {
     register: async (data: RegisterRequest): Promise<RegisterResponse> => {
         try {
-            const response = await axios.post<RegisterResponse>(`${API_URL}/users/register`, data);
+            const response = await apiClient.post<RegisterResponse>('/users/register', data);
             return response.data;
         } catch (error) {
             const axiosError = error as AxiosError<ApiError>;
@@ -19,7 +18,7 @@ export const authService = {
 
     login: async (data: LoginRequest): Promise<LoginResponse> => {
         try {
-            const response = await axios.post<LoginResponse>(`${API_URL}/users/login`, data);
+            const response = await apiClient.post<LoginResponse>('/users/login', data);
             if (response.data.token) {
                 localStorage.setItem('user', JSON.stringify(response.data));
             }
@@ -32,4 +31,22 @@ export const authService = {
             throw new Error(axiosError.message);
         }
     },
+    getCurrentUser: async (): Promise<any> => {
+        try {
+            const response = await apiClient.get('/users/me');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+            throw error;
+        }
+    },
+
+    logout: async (refreshToken: string): Promise<void> => {
+        try {
+            await apiClient.post('/users/logout', { refreshToken });
+        } catch (error) {
+            console.error('Error logging out:', error);
+            // We verify logout even if server fails to ensure client side cleanup
+        }
+    }
 };

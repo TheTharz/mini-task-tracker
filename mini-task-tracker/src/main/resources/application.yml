@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/taskdb
+    url: jdbc:postgresql://localhost:5432/taskdb?stringtype=unspecified
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -15,6 +15,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:

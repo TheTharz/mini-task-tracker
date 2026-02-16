@@ -10,4 +10,6 @@ public interface UserService {
     UserResponse register(RegisterRequest request);
     LoginResponse login(LoginRequest request);
     RefreshTokenResponse refreshToken(String refreshToken);
+    void logout(String refreshToken);
+    UserResponse getCurrentUser(String userId);
 }
